@@ -14,16 +14,28 @@ export async function POST(req) {
     const body = await req.json();
     body.model = "z-ai/glm-5";
 
-    const nimRes = await fetch("https://integrate.api.nvidia.com/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${process.env.NVIDIA_NIM_API_KEY}`,
-      },
-      body: JSON.stringify(body),
-    });
+    const apiKey = process.env.NVIDIA_NIM_API_KEY;
 
-    const data = await nimRes.json();
+    const nimRes = await fetch(
+      "https://integrate.api.nvidia.com/v1/chat/completions",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer " + apiKey,
+        },
+        body: JSON.stringify(body),
+      }
+    );
+
+    const text = await nimRes.text();
+
+    let data;
+    try {
+      data = JSON.parse(text);
+    } catch (e) {
+      data = { error: "NVIDIA returned invalid response", raw: text };
+    }
 
     return new Response(JSON.stringify(data), {
       status: nimRes.status,
