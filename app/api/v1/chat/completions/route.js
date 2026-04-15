@@ -12,7 +12,7 @@ export async function OPTIONS() {
 export async function POST(req) {
   try {
     const body = await req.json();
-    body.model = "meta/llama-3.1-8b-instruct";
+    body.model = "z-ai/glm-5";
 
     const apiKey = process.env.NVIDIA_NIM_API_KEY;
 
