@@ -12,9 +12,12 @@ export async function OPTIONS() {
 export async function POST(req) {
   try {
     const body = await req.json();
-    body.model = "deepseek-ai/deepseek-v3.2";
+    body.model = "deepseek-ai/deepseek-v3_2";
 
     const apiKey = process.env.NVIDIA_NIM_API_KEY;
+
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 25000);
 
     const nimRes = await fetch(
       "https://integrate.api.nvidia.com/v1/chat/completions",
@@ -25,8 +28,11 @@ export async function POST(req) {
           "Authorization": "Bearer " + apiKey,
         },
         body: JSON.stringify(body),
+        signal: controller.signal,
       }
     );
+
+    clearTimeout(timeout);
 
     const text = await nimRes.text();
 
@@ -45,12 +51,20 @@ export async function POST(req) {
       },
     });
   } catch (err) {
-    return new Response(JSON.stringify({ error: String(err) }), {
-      status: 500,
-      headers: {
-        "Content-Type": "application/json",
-        "Access-Control-Allow-Origin": "*",
-      },
-    });
+    const isTimeout = err.name === "AbortError";
+    return new Response(
+      JSON.stringify({
+        error: isTimeout
+          ? "NVIDIA took too long to respond, try again"
+          : String(err),
+      }),
+      {
+        status: isTimeout ? 504 : 500,
+        headers: {
+          "Content-Type": "application/json",
+          "Access-Control-Allow-Origin": "*",
+        },
+      }
+    );
   }
 }
