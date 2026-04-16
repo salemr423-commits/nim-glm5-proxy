@@ -13,7 +13,7 @@ export async function POST(req) {
   try {
     const body = await req.json();
     body.model = "meta/llama-3.1-70b-instruct";
-    body.stream = true;
+    body.stream = false;
 
     const apiKey = process.env.NVIDIA_NIM_API_KEY;
 
@@ -29,24 +29,28 @@ export async function POST(req) {
       }
     );
 
-    return new Response(nimRes.body, {
+    const text = await nimRes.text();
+    let data;
+    try {
+      data = JSON.parse(text);
+    } catch (e) {
+      data = { error: "Invalid response", raw: text };
+    }
+
+    return new Response(JSON.stringify(data), {
       status: nimRes.status,
       headers: {
-        "Content-Type": "text/event-stream",
+        "Content-Type": "application/json",
         "Access-Control-Allow-Origin": "*",
-        "Cache-Control": "no-cache",
       },
     });
   } catch (err) {
-    return new Response(
-      JSON.stringify({ error: String(err) }),
-      {
-        status: 500,
-        headers: {
-          "Content-Type": "application/json",
-          "Access-Control-Allow-Origin": "*",
-        },
-      }
-    );
+    return new Response(JSON.stringify({ error: String(err) }), {
+      status: 500,
+      headers: {
+        "Content-Type": "application/json",
+        "Access-Control-Allow-Origin": "*",
+      },
+    });
   }
 }
