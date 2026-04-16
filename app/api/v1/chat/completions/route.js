@@ -12,7 +12,7 @@ export async function OPTIONS() {
 export async function POST(req) {
   try {
     const body = await req.json();
-    body.model = "deepseek-ai/deepseek-v3_2";
+    body.model = "deepseek-ai/deepseek-v3.2";
 
     const apiKey = process.env.NVIDIA_NIM_API_KEY;
 
