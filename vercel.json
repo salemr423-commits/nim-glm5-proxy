@@ -1,0 +1,7 @@
+{
+  "functions": {
+    "app/api/v1/chat/completions/route.js": {
+      "maxDuration": 30
+    }
+  }
+}
